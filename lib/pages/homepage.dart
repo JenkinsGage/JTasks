@@ -1,114 +1,106 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_admin_scaffold/admin_scaffold.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:fluent_ui/fluent_ui.dart';
 
+import 'dashboard.dart';
 import 'package:jtasks/utils.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  final DataWrapper data;
+
+  const HomePage({Key? key, required this.data}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  int count = 0;
+  int paneIndex = 0;
+
+  String? selectedBoard;
+  var boards = <String>['Koler Dev', 'JTasks Dev'];
 
   @override
   Widget build(BuildContext context) {
-    return AdminScaffold(
-      appBar: AppBar(
-        title: const Text('JTasks'),
-      ),
-      sideBar: SideBar(
-        backgroundColor: flexScheme(context).background,
-        activeBackgroundColor: flexScheme(context).surfaceVariant,
-        iconColor: flexScheme(context).secondary,
-        activeIconColor: flexScheme(context).surfaceTint,
-        textStyle: TextStyle(
-            color: flexScheme(context).onBackground, fontFamily: GoogleFonts.notoSans().fontFamily, fontSize: 12),
-        activeTextStyle: TextStyle(
-            color: flexScheme(context).onPrimaryContainer, fontFamily: GoogleFonts.notoSans().fontFamily, fontSize: 12),
-        items: const [
-          AdminMenuItem(
-            title: 'Dashboard',
-            route: '/',
-            icon: Icons.dashboard_rounded,
-          ),
-          AdminMenuItem(
-            title: 'Boards',
-            icon: Icons.horizontal_split_rounded,
-            children: [
-              AdminMenuItem(
-                title: 'Koler Dev Board',
-                icon: Icons.view_array_rounded,
-                route: '/secondLevelItem1',
-              ),
-              AdminMenuItem(
-                title: 'JTasks Dev Board',
-                icon: Icons.view_array_rounded,
-                route: '/secondLevelItem2',
-              ),
-            ],
-          ),
-        ],
-        selectedRoute: '/',
-        onSelected: (item) {
-          if (item.route != null) {
-            // Navigator.of(context).pushNamed(item.route!);
-            print(item.route);
-          }
-        },
-        header: SizedBox(
-            height: 40,
-            width: double.infinity,
-            child: Stack(
-              children: [
-                const Align(
-                  child: Text('Boards'),
-                ),
-                Positioned(
-                    right: 0,
-                    child: IconButton(
-                        tooltip: 'Create new boards',
-                        onPressed: () {
-                          setState(() {
-                            count++;
-                          });
-                        },
-                        icon: const Icon(Icons.add_box_rounded)))
-              ],
-            )),
-        footer: SizedBox(
-          height: 24,
-          width: double.infinity,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              IconButton(
-                  onPressed: () {},
-                  tooltip: 'Visit official site.',
-                  icon: const Icon(
-                    Icons.web,
-                    size: 12,
-                  )),
-            ],
-          ),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Container(
-          alignment: Alignment.topLeft,
-          padding: const EdgeInsets.all(10),
-          child: Text(
-            '$count',
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 36,
+    return NavigationView(
+      appBar: const NavigationAppBar(title: Text("JTasks", style: TextStyle(fontWeight: FontWeight.bold))),
+      pane: NavigationPane(
+          header: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: AutoSuggestBox<String>(
+              placeholder: 'Search',
+              items: boards.map((e) => AutoSuggestBoxItem(value: e, label: e)).toList(),
+              onSelected: (value) {
+                setState(() {
+                  selectedBoard = value.label;
+                });
+              },
             ),
           ),
-        ),
-      ),
+          footerItems: [
+            PaneItemHeader(
+              header: Row(children: [
+                Tooltip(
+                  message: 'Settings',
+                  child: IconButton(icon: const Icon(FluentIcons.settings), onPressed: () {}),
+                ),
+                Tooltip(
+                  message: widget.data.themeMode == ThemeMode.light ? 'Dark Mode' : 'Light Mode',
+                  child: IconButton(
+                      icon: widget.data.themeMode == ThemeMode.light
+                          ? const Icon(FluentIcons.clear_night)
+                          : const Icon(FluentIcons.sunny),
+                      onPressed: () {
+                        widget.data.updateThemeMode(
+                            widget.data.themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light);
+                      }),
+                )
+              ]),
+            ),
+            PaneItemSeparator()
+          ],
+          selected: paneIndex,
+          onChanged: (value) {
+            setState(() {
+              paneIndex = value;
+            });
+          },
+          displayMode: PaneDisplayMode.auto,
+          items: [
+            PaneItem(
+                icon: const Icon(FluentIcons.view_dashboard), body: const Dashboard(), title: const Text('Dashboard')),
+            PaneItemSeparator(),
+            PaneItemExpander(
+                icon: const Icon(FluentIcons.boards),
+                title: const Text('Boards'),
+                items: <NavigationPaneItem>[
+                      PaneItemHeader(
+                          header: Row(
+                        children: [
+                          Expanded(child: Text('${boards.length} OPENING')),
+                          IconButton(
+                            icon: const Icon(FluentIcons.add_in),
+                            onPressed: () {
+                              setState(() {
+                                boards.add('New Board');
+                              });
+                            },
+                          )
+                        ],
+                      ))
+                    ] +
+                    boards.map((e) => buildPaneItem(e, 5)).toList() +
+                    [
+                      PaneItemHeader(header: Row(children: const [Text('0 CLOSED')]))
+                    ],
+                body: Container())
+          ]),
     );
   }
+}
+
+PaneItem buildPaneItem(String title, int num) {
+  return PaneItem(
+      icon: const Icon(FluentIcons.storyboard),
+      body: Container(),
+      title: Text(title),
+      infoBadge: InfoBadge(source: Text('$num')));
 }
