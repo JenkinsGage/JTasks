@@ -4,7 +4,17 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:jtasks/pages/homepage.dart';
 import 'utils.dart';
 
-void main() {
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'objectbox.g.dart';
+
+// objectBox is the entry of database that contains a store property which stored the boxes of all the models.
+// It is initialized in main function before runApp()
+late ObjectBox objectBox;
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  objectBox = await ObjectBox.create();
   runApp(const MyApp());
 }
 
@@ -48,5 +58,21 @@ class _MyAppState extends State<MyApp> {
         data: data,
       ),
     );
+  }
+}
+
+class ObjectBox {
+  /// The Store of this app.
+  late final Store store;
+
+  ObjectBox._create(this.store) {
+    // Add any additional setup code, e.g. build queries.
+  }
+
+  /// Create an instance of ObjectBox to use throughout the app.
+  static Future<ObjectBox> create() async {
+    final docsDir = await getApplicationDocumentsDirectory();
+    final store = await openStore(directory: p.join(docsDir.path, "JTasks"));
+    return ObjectBox._create(store);
   }
 }
