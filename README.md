@@ -1,4 +1,4 @@
-# jtasks
+# JTasks
 
 JTasks is a cross-platform tasks management software that can assist you manage tasks and progress of your job or project.
 
