@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:3053100696962881921",
-      "lastPropertyId": "11:9154665782701980448",
+      "lastPropertyId": "12:3642486414272895118",
       "name": "Board",
       "properties": [
         {
@@ -48,13 +48,18 @@
           "id": "11:9154665782701980448",
           "name": "expectedFinishedTime",
           "type": 10
+        },
+        {
+          "id": "12:3642486414272895118",
+          "name": "dbState",
+          "type": 6
         }
       ],
       "relations": []
     },
     {
       "id": "2:844520505074085199",
-      "lastPropertyId": "7:8076988491127627585",
+      "lastPropertyId": "10:7333778899796269471",
       "name": "Task",
       "properties": [
         {
@@ -94,6 +99,21 @@
         {
           "id": "7:8076988491127627585",
           "name": "dbState",
+          "type": 6
+        },
+        {
+          "id": "8:8608147415019658769",
+          "name": "startedTime",
+          "type": 10
+        },
+        {
+          "id": "9:208703787727472761",
+          "name": "expectedDays",
+          "type": 8
+        },
+        {
+          "id": "10:7333778899796269471",
+          "name": "priority",
           "type": 6
         }
       ],

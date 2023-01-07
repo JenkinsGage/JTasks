@@ -3,6 +3,7 @@ import 'package:flutter/material.dart' as m;
 
 import '../models.dart';
 import 'dashboard.dart';
+import 'board.dart';
 import 'package:jtasks/utils.dart';
 
 import 'package:jtasks/main.dart';
@@ -22,7 +23,8 @@ class _HomePageState extends State<HomePage> {
   int paneIndex = 0;
 
   String? selectedBoard;
-  var boards = <Board>[];
+  var openingBoards = <Board>[];
+  var closedBoards = <Board>[];
 
   void showAddBoardDialog(BuildContext context) async {
     final result = await showDialog(
@@ -37,24 +39,38 @@ class _HomePageState extends State<HomePage> {
           createdTime: DateTime.now(),
           expectedStartTime: newBoardDetails[2],
           expectedFinishedTime: newBoardDetails[3]);
-      objectBox.store.box<Board>().put(newBoard);
+      obx.store.box<Board>().put(newBoard);
     }
     setState(() {});
   }
 
   @override
   void initState() {
-    // Get all the board instances from disk at beginning
-    boards = objectBox.store.box<Board>().getAll();
+    // Get all the opening and closed board instances from disk at beginning
+    final openingBoardsQuery = obx.store.box<Board>().query(Board_.dbState.equals(1)).build();
+    openingBoards = openingBoardsQuery.find();
+    openingBoardsQuery.close();
+
+    final closedBoardsQuery = obx.store.box<Board>().query(Board_.dbState.equals(2)).build();
+    closedBoards = closedBoardsQuery.find();
+    closedBoardsQuery.close();
+    //
 
     super.initState();
 
     // Build a stream to watch the changes of boards
-    objectBox.store.box<Board>().query().watch().listen((Query<Board> query) {
+    obx.store.box<Board>().query(Board_.dbState.equals(1)).watch().listen((Query<Board> query) {
       setState(() {
-        boards = query.find();
+        openingBoards = query.find();
       });
     });
+
+    obx.store.box<Board>().query(Board_.dbState.equals(2)).watch().listen((Query<Board> query) {
+      setState(() {
+        closedBoards = query.find();
+      });
+    });
+    //
   }
 
   @override
@@ -66,7 +82,7 @@ class _HomePageState extends State<HomePage> {
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: AutoSuggestBox<String>(
               placeholder: 'Search',
-              items: boards.map((e) => AutoSuggestBoxItem(value: e.name, label: e.name!)).toList(),
+              items: openingBoards.map((e) => AutoSuggestBoxItem(value: e.name, label: e.name!)).toList(),
               onSelected: (value) {
                 setState(() {
                   selectedBoard = value.label;
@@ -114,7 +130,7 @@ class _HomePageState extends State<HomePage> {
                       PaneItemHeader(
                           header: Row(
                         children: [
-                          Expanded(child: Text('${boards.length} OPENING')),
+                          Expanded(child: Text('${openingBoards.length} OPENING')),
                           IconButton(
                             icon: const Icon(FluentIcons.add_in),
                             onPressed: () {
@@ -124,10 +140,11 @@ class _HomePageState extends State<HomePage> {
                         ],
                       ))
                     ] +
-                    boards.map((e) => buildPaneBoardItem(e)).toList() +
+                    openingBoards.map((e) => buildPaneBoardItem(e)).toList() +
                     [
                       PaneItemHeader(header: Row(children: const [Text('0 CLOSED')]))
-                    ],
+                    ] +
+                    closedBoards.map((e) => buildPaneBoardItem(e)).toList(),
                 body: Container())
           ]),
     );
@@ -138,7 +155,7 @@ PaneItem buildPaneBoardItem(Board board) {
   FlyoutController optionsController = FlyoutController();
   return PaneItem(
       icon: const Icon(FluentIcons.storyboard),
-      body: Container(),
+      body: BoardView(board: board),
       title: Text(board.name!),
       trailing: Flyout(
         controller: optionsController,
@@ -155,12 +172,15 @@ PaneItem buildPaneBoardItem(Board board) {
                         Navigator.pop(context);
                       },
                       icon: const Icon(FluentIcons.edit)),
-                  FlyoutListTile(
-                      text: const Text('Close'),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      icon: const Icon(FluentIcons.save_and_close)),
+                  if (board.state == BoardStates.open)
+                    FlyoutListTile(
+                        text: const Text('Close'),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          board.state = BoardStates.closed;
+                          obx.store.box<Board>().put(board);
+                        },
+                        icon: const Icon(FluentIcons.save_and_close)),
                   FlyoutListTile(
                       text: const Text('Delete'),
                       onPressed: () {
@@ -168,14 +188,14 @@ PaneItem buildPaneBoardItem(Board board) {
                         showDeleteConfirmDialog(
                             context: context,
                             onDelete: () {
-                              objectBox.store.box<Board>().remove(board.id);
+                              obx.store.box<Board>().remove(board.id);
                             });
                       },
                       icon: const Icon(FluentIcons.delete)),
                 ],
               ));
         },
-        child: IconButton(icon: const Icon(FluentIcons.settings), onPressed: optionsController.open),
+        child: IconButton(icon: const Icon(FluentIcons.more), onPressed: optionsController.open),
       ),
       infoBadge: board.tasks.isNotEmpty ? InfoBadge(source: Text('${board.tasks.length}')) : null);
 }
@@ -236,7 +256,7 @@ class _NewBoardDialogState extends State<NewBoardDialog> {
             header: 'Expected Finished Time',
             onChanged: (value) {
               setState(() {
-                expectedFinishedTime = value;
+                expectedFinishedTime = DateTime(value.year, value.month, value.day, 23, 59, 59);
               });
             },
           )
@@ -265,7 +285,7 @@ class _NewBoardDialogState extends State<NewBoardDialog> {
                 }
                 if (boardName.text.isEmpty) {
                   setState(() {
-                    infoBarString = 'A valid and unique board name is required.';
+                    infoBarString = 'A valid board name is required.';
                     infoBarVisible = true;
                     boardValid = false;
                   });

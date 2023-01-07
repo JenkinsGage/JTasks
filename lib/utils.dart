@@ -1,4 +1,6 @@
 import 'package:fluent_ui/fluent_ui.dart';
+import 'package:pasteboard/pasteboard.dart';
+import 'dart:convert';
 
 class DataWrapper {
   ValueChanged<ThemeMode>? onThemeModeChanged;
@@ -40,4 +42,30 @@ void showDeleteConfirmDialog(
                   child: const Text('Delete'))
             ],
           ));
+}
+
+void replaceTextSelectionWith(TextEditingController textEditingController, Function(String selection) getReplaceString,
+    {int? optionalOffset}) {
+  final selection = textEditingController.selection;
+  if (selection.isValid) {
+    final text = textEditingController.text;
+    final replaceText = getReplaceString(selection.textInside(text)) as String;
+    final newText = text.replaceRange(selection.start, selection.end, replaceText);
+    if (!selection.isCollapsed) {
+      textEditingController.value = TextEditingValue(
+          text: newText, selection: TextSelection.collapsed(offset: selection.start + replaceText.length));
+    } else {
+      textEditingController.value = TextEditingValue(
+          text: newText,
+          selection: TextSelection.collapsed(offset: selection.start + (optionalOffset ?? replaceText.length)));
+    }
+  }
+}
+
+Future<String?> getImageBase64FromPasteboard() async {
+  final imageBytes = await Pasteboard.image;
+  if (imageBytes != null) {
+    return base64.encode(imageBytes);
+  }
+  return null;
 }

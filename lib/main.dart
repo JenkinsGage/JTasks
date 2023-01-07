@@ -10,11 +10,11 @@ import 'objectbox.g.dart';
 
 // objectBox is the entry of database that contains a store property which stored the boxes of all the models.
 // It is initialized in main function before runApp()
-late ObjectBox objectBox;
+late ObjectBox obx;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  objectBox = await ObjectBox.create();
+  obx = await ObjectBox.create();
   runApp(const MyApp());
 }
 

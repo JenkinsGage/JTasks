@@ -15,7 +15,7 @@ class _DashboardState extends State<Dashboard> {
         children: [
           Row(
             children: const [
-              Divider(),
+              Padding(padding: EdgeInsets.only(left: 16)),
               Icon(FluentIcons.view_dashboard),
               Padding(
                 padding: EdgeInsets.only(left: 4),
@@ -23,6 +23,7 @@ class _DashboardState extends State<Dashboard> {
               ),
             ],
           ),
+          const Divider()
         ],
       ),
       bottomBar: CommandBar(
