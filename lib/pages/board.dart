@@ -210,22 +210,62 @@ class _TaskListState extends State<TaskList> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // List Name
           ListTile(title: Text(getTaskStateString(widget.taskState), style: const TextStyle(fontSize: 16))),
-          const Divider(
-            style: DividerThemeData(thickness: 4),
+
+          DragTarget<Task>(
+            builder: (context, candidateData, rejectedData) {
+              return const Divider(
+                style: DividerThemeData(thickness: 4),
+              );
+            },
+            onAccept: (Task data) {
+              // Set the dragging task to corresponding state and save after dropped
+              data.state = widget.taskState;
+              obx.store.box<Task>().put(data);
+            },
+            onWillAccept: (Task? data) {
+              if (data != null && data.state != widget.taskState) {
+                return true;
+              }
+              return false;
+            },
           ),
           Flexible(
             child: ListView.builder(
               itemCount: tasks.length,
               itemBuilder: (context, index) {
                 final task = tasks[index];
-                return ListTile(
-                  title: Text('${task.name}'),
-                  onPressed: () {},
-                  trailing:
-                  InfoBadge(source: Text(task.expectedDays.toString().replaceAll(RegExp(r'([.]*0)(?!.*\d)'), ''))),
-                  subtitle: Text(
-                      '${task.description?.substring(0, min(task.description!.length, 64))}${(task.description ?? '').length > 64 ? '...' : ''}'),
+                return Draggable<Task>(
+                  data: task,
+                  feedback: SizedBox(
+                      height: 50,
+                      width: 200,
+                      child: ListTile(
+                          tileColor: ButtonState.resolveWith(
+                              (states) => FluentTheme.of(context).resources.subtleFillColorSecondary),
+                          title: Text('${task.name}'))),
+                  childWhenDragging: Transform.translate(
+                    offset: const Offset(8, 0),
+                    child: ListTile(
+                      tileColor: ButtonState.resolveWith(
+                          (states) => FluentTheme.of(context).resources.subtleFillColorTertiary),
+                      title: Text('${task.name}'),
+                      onPressed: () {},
+                      trailing: InfoBadge(
+                          source: Text(task.expectedDays.toString().replaceAll(RegExp(r'([.]*0)(?!.*\d)'), ''))),
+                      subtitle: Text(
+                          '${task.description?.substring(0, min(task.description!.length, 64))}${(task.description ?? '').length > 64 ? '...' : ''}'),
+                    ),
+                  ),
+                  child: ListTile(
+                    title: Text('${task.name}'),
+                    onPressed: () {},
+                    trailing: InfoBadge(
+                        source: Text(task.expectedDays.toString().replaceAll(RegExp(r'([.]*0)(?!.*\d)'), ''))),
+                    subtitle: Text(
+                        '${task.description?.substring(0, min(task.description!.length, 64))}${(task.description ?? '').length > 64 ? '...' : ''}'),
+                  ),
                 );
               },
             ),
@@ -297,8 +337,8 @@ class _NewTaskDialogState extends State<NewTaskDialog> {
                 title: Text(infoBarString),
                 severity: InfoBarSeverity.warning,
                 onClose: () => setState(() {
-                  infoBarVisible = false;
-                })),
+                      infoBarVisible = false;
+                    })),
           TextBox(
             controller: taskName,
             header: 'New Task Name',
@@ -316,16 +356,16 @@ class _NewTaskDialogState extends State<NewTaskDialog> {
                         child: IconButton(
                             icon: const Icon(FluentIcons.switch_widget),
                             onPressed: () => setState(() {
-                              showMarkdown = !showMarkdown;
-                            }))),
+                                  showMarkdown = !showMarkdown;
+                                }))),
                     Tooltip(
                         message: 'Make Selection Bold',
                         child: IconButton(
                             icon: const Icon(FluentIcons.bold),
                             onPressed: () => setState(() {
-                              replaceTextSelectionWith(taskDesc, (selection) => '**$selection**',
-                                  optionalOffset: 2);
-                            }))),
+                                  replaceTextSelectionWith(taskDesc, (selection) => '**$selection**',
+                                      optionalOffset: 2);
+                                }))),
                     Tooltip(
                         message: 'Make Selection Italic',
                         child: IconButton(
