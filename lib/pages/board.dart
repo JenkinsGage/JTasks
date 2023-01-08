@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:jtasks/main.dart';
+import 'package:jtasks/database.dart';
 import 'package:jtasks/models.dart';
 import 'package:jtasks/objectbox.g.dart';
 import 'package:jtasks/utils.dart';
@@ -30,7 +30,7 @@ class _BoardViewState extends State<BoardView> {
           expectedDays: m['expectedDays'],
           priority: m['priority'],
           createdTime: DateTime.now(),
-          state: TaskStates.open);
+          state: TaskState.open);
       newTask.board.target = widget.board;
       obx.store.box<Task>().put(newTask);
     }
@@ -81,7 +81,7 @@ class _BoardViewState extends State<BoardView> {
                   icon: const Icon(FluentIcons.accept),
                   label: const Text('Start'),
                   onPressed: () {
-                    widget.board.state = BoardStates.open;
+                    widget.board.state = BoardState.open;
                     widget.board.openedTime = DateTime.now();
                     obx.store.box<Board>().put(widget.board);
                   },
@@ -137,10 +137,10 @@ class _BoardViewState extends State<BoardView> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TaskList(board: widget.board, taskState: TaskStates.open),
-                TaskList(board: widget.board, taskState: TaskStates.progress),
-                TaskList(board: widget.board, taskState: TaskStates.review),
-                TaskList(board: widget.board, taskState: TaskStates.finished)
+                TaskList(board: widget.board, taskState: TaskState.open),
+                TaskList(board: widget.board, taskState: TaskState.progress),
+                TaskList(board: widget.board, taskState: TaskState.review),
+                TaskList(board: widget.board, taskState: TaskState.finished)
               ],
             ),
           ),
@@ -153,7 +153,7 @@ class _BoardViewState extends State<BoardView> {
 
 class TaskList extends StatefulWidget {
   final Board board;
-  final TaskStates taskState;
+  final TaskState taskState;
 
   const TaskList({Key? key, required this.board, required this.taskState}) : super(key: key);
 
@@ -188,17 +188,17 @@ class _TaskListState extends State<TaskList> {
     taskQuerySubs.cancel();
   }
 
-  String getTaskStateString(TaskStates state) {
+  String getTaskStateString(TaskState state) {
     switch (state) {
-      case TaskStates.backlog:
+      case TaskState.backlog:
         return 'Backlog';
-      case TaskStates.open:
+      case TaskState.open:
         return 'Open';
-      case TaskStates.progress:
+      case TaskState.progress:
         return 'Progress';
-      case TaskStates.review:
+      case TaskState.review:
         return 'Review';
-      case TaskStates.finished:
+      case TaskState.finished:
         return 'Finished';
     }
   }

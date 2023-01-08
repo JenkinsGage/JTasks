@@ -7,7 +7,7 @@ class Board {
 
   String? name;
   String? description;
-  BoardStates? state;
+  BoardState? state;
 
   int? get dbState {
     return state?.index;
@@ -17,7 +17,7 @@ class Board {
     if (value == null) {
       state = null;
     } else {
-      state = BoardStates.values[value];
+      state = BoardState.values[value];
     }
   }
 
@@ -43,7 +43,7 @@ class Board {
       {this.id = 0,
       required this.name,
       this.description,
-      this.state = BoardStates.open,
+      this.state = BoardState.open,
       required this.createdTime,
       this.closedTime,
       this.openedTime,
@@ -61,7 +61,7 @@ class Task {
 
   final board = ToOne<Board>();
 
-  TaskStates? state;
+  TaskState? state;
 
   int? get dbState {
     return state?.index;
@@ -71,7 +71,7 @@ class Task {
     if (value == null) {
       state = null;
     } else {
-      state = TaskStates.values[value];
+      state = TaskState.values[value];
     }
   }
 
@@ -100,6 +100,6 @@ class Task {
       this.priority});
 }
 
-enum TaskStates { backlog, open, progress, review, finished }
+enum TaskState { backlog, open, progress, review, finished }
 
-enum BoardStates { archived, open, closed }
+enum BoardState { archived, open, closed }
