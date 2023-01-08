@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:fluent_ui/fluent_ui.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:jtasks/main.dart';
 import 'package:jtasks/models.dart';
+import 'package:jtasks/objectbox.g.dart';
 import 'package:jtasks/utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -29,8 +31,8 @@ class _BoardViewState extends State<BoardView> {
           priority: m['priority'],
           createdTime: DateTime.now(),
           state: TaskStates.open);
-      widget.board.tasks.add(newTask);
-      obx.store.box<Board>().put(widget.board);
+      newTask.board.target = widget.board;
+      obx.store.box<Task>().put(newTask);
     }
   }
 
@@ -161,11 +163,29 @@ class TaskList extends StatefulWidget {
 
 class _TaskListState extends State<TaskList> {
   var tasks = <Task>[];
+  late final StreamSubscription<Query<Task>> taskQuerySubs;
 
   @override
   void initState() {
     super.initState();
     tasks = widget.board.tasks.where((task) => task.state == widget.taskState).toList();
+
+    //Listen to the tasks update
+    taskQuerySubs = obx.store
+        .box<Task>()
+        .query(Task_.board.equals(widget.board.id) & Task_.dbState.equals(widget.taskState.index))
+        .watch()
+        .listen((Query<Task> query) {
+      setState(() {
+        tasks = query.find();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    taskQuerySubs.cancel();
   }
 
   String getTaskStateString(TaskStates state) {
@@ -190,22 +210,62 @@ class _TaskListState extends State<TaskList> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // List Name
           ListTile(title: Text(getTaskStateString(widget.taskState), style: const TextStyle(fontSize: 16))),
-          const Divider(
-            style: DividerThemeData(thickness: 4),
+
+          DragTarget<Task>(
+            builder: (context, candidateData, rejectedData) {
+              return const Divider(
+                style: DividerThemeData(thickness: 4),
+              );
+            },
+            onAccept: (Task data) {
+              // Set the dragging task to corresponding state and save after dropped
+              data.state = widget.taskState;
+              obx.store.box<Task>().put(data);
+            },
+            onWillAccept: (Task? data) {
+              if (data != null && data.state != widget.taskState) {
+                return true;
+              }
+              return false;
+            },
           ),
           Flexible(
             child: ListView.builder(
               itemCount: tasks.length,
               itemBuilder: (context, index) {
                 final task = tasks[index];
-                return ListTile(
-                  title: Text('${task.name}'),
-                  onPressed: () {},
-                  trailing:
-                      InfoBadge(source: Text(task.expectedDays.toString().replaceAll(RegExp(r'([.]*0)(?!.*\d)'), ''))),
-                  subtitle: Text(
-                      '${task.description?.substring(0, min(task.description!.length, 64))}${(task.description ?? '').length > 64 ? '...' : ''}'),
+                return Draggable<Task>(
+                  data: task,
+                  feedback: SizedBox(
+                      height: 50,
+                      width: 200,
+                      child: ListTile(
+                          tileColor: ButtonState.resolveWith(
+                              (states) => FluentTheme.of(context).resources.subtleFillColorSecondary),
+                          title: Text('${task.name}'))),
+                  childWhenDragging: Transform.translate(
+                    offset: const Offset(8, 0),
+                    child: ListTile(
+                      tileColor: ButtonState.resolveWith(
+                          (states) => FluentTheme.of(context).resources.subtleFillColorTertiary),
+                      title: Text('${task.name}'),
+                      onPressed: () {},
+                      trailing: InfoBadge(
+                          source: Text(task.expectedDays.toString().replaceAll(RegExp(r'([.]*0)(?!.*\d)'), ''))),
+                      subtitle: Text(
+                          '${task.description?.substring(0, min(task.description!.length, 64))}${(task.description ?? '').length > 64 ? '...' : ''}'),
+                    ),
+                  ),
+                  child: ListTile(
+                    title: Text('${task.name}'),
+                    onPressed: () {},
+                    trailing: InfoBadge(
+                        source: Text(task.expectedDays.toString().replaceAll(RegExp(r'([.]*0)(?!.*\d)'), ''))),
+                    subtitle: Text(
+                        '${task.description?.substring(0, min(task.description!.length, 64))}${(task.description ?? '').length > 64 ? '...' : ''}'),
+                  ),
                 );
               },
             ),
@@ -399,20 +459,20 @@ class _NewTaskDialogState extends State<NewTaskDialog> {
                         },
                         items: const [
                           ComboBoxItem(
-                            value: -1,
-                            child: Text('Minor'),
-                          ),
-                          ComboBoxItem(
-                            value: 0,
-                            child: Text('Normal'),
+                            value: 2,
+                            child: Text('Critical'),
                           ),
                           ComboBoxItem(
                             value: 1,
                             child: Text('Major'),
                           ),
                           ComboBoxItem(
-                            value: 2,
-                            child: Text('Critical'),
+                            value: 0,
+                            child: Text('Normal'),
+                          ),
+                          ComboBoxItem(
+                            value: -1,
+                            child: Text('Minor'),
                           )
                         ]),
                   ],

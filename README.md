@@ -4,6 +4,7 @@
     src="https://img.shields.io/badge/fluent-design-blue?style=flat-square&color=7A7574&labelColor=0078D7"
   />
 </a>
+<br>
 JTasks is a cross-platform tasks management software that can assist you manage tasks and progress of your job or project.
 
 ## Getting Started
