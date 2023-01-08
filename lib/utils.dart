@@ -1,26 +1,11 @@
-import 'package:fluent_ui/fluent_ui.dart';
-import 'package:pasteboard/pasteboard.dart';
 import 'dart:convert';
 
-class DataWrapper {
-  ValueChanged<ThemeMode>? onThemeModeChanged;
-
-  ThemeMode themeMode;
-
-  DataWrapper({this.themeMode = ThemeMode.light, this.onThemeModeChanged});
-
-  void updateThemeMode(ThemeMode themeMode) {
-    this.themeMode = themeMode;
-
-    if (onThemeModeChanged != null) {
-      onThemeModeChanged!(themeMode);
-    }
-  }
-}
+import 'package:fluent_ui/fluent_ui.dart';
+import 'package:pasteboard/pasteboard.dart';
 
 void showDeleteConfirmDialog(
     {required BuildContext context, required VoidCallback onDelete, VoidCallback? onCanceled}) async {
-  final result = await showDialog(
+  await showDialog(
       context: context,
       builder: (context) => ContentDialog(
             title: const Text('Do you really want to delete it?'),

@@ -2,6 +2,7 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' as m;
 import 'package:jtasks/main.dart';
 import 'package:jtasks/utils.dart';
+import 'package:provider/provider.dart';
 
 import '../models.dart';
 import '../objectbox.g.dart';
@@ -9,9 +10,7 @@ import 'board.dart';
 import 'dashboard.dart';
 
 class HomePage extends StatefulWidget {
-  final DataWrapper data;
-
-  const HomePage({Key? key, required this.data}) : super(key: key);
+  const HomePage({Key? key}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -73,6 +72,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final gProvider = Provider.of<GProvider>(context);
     return NavigationView(
       appBar: const NavigationAppBar(title: Text("JTasks", style: TextStyle(fontWeight: FontWeight.bold))),
       pane: NavigationPane(
@@ -96,14 +96,14 @@ class _HomePageState extends State<HomePage> {
                   child: IconButton(icon: const Icon(FluentIcons.settings), onPressed: () {}),
                 ),
                 Tooltip(
-                  message: widget.data.themeMode == ThemeMode.light ? 'Dark Mode' : 'Light Mode',
+                  message: gProvider.themeMode == ThemeMode.light ? 'Dark Mode' : 'Light Mode',
                   child: IconButton(
-                      icon: widget.data.themeMode == ThemeMode.light
+                      icon: gProvider.themeMode == ThemeMode.light
                           ? const Icon(FluentIcons.clear_night)
                           : const Icon(FluentIcons.sunny),
                       onPressed: () {
-                        widget.data.updateThemeMode(
-                            widget.data.themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light);
+                        gProvider.themeMode =
+                            (gProvider.themeMode == ThemeMode.light) ? ThemeMode.dark : ThemeMode.light;
                       }),
                 )
               ]),
@@ -125,8 +125,8 @@ class _HomePageState extends State<HomePage> {
                 icon: const Icon(FluentIcons.boards),
                 title: const Text('Boards'),
                 items: <NavigationPaneItem>[
-                      PaneItemHeader(
-                          header: Row(
+                  PaneItemHeader(
+                      header: Row(
                         children: [
                           Expanded(child: Text('${openingBoards.length} OPENING')),
                           IconButton(
@@ -137,7 +137,7 @@ class _HomePageState extends State<HomePage> {
                           )
                         ],
                       ))
-                    ] +
+                ] +
                     openingBoards.map((e) => buildPaneBoardItem(e)).toList() +
                     [
                       PaneItemHeader(header: Row(children: const [Text('0 CLOSED')]))
