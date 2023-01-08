@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:fluent_ui/fluent_ui.dart';
@@ -5,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:jtasks/main.dart';
 import 'package:jtasks/models.dart';
+import 'package:jtasks/objectbox.g.dart';
 import 'package:jtasks/utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -29,8 +31,8 @@ class _BoardViewState extends State<BoardView> {
           priority: m['priority'],
           createdTime: DateTime.now(),
           state: TaskStates.open);
-      widget.board.tasks.add(newTask);
-      obx.store.box<Board>().put(widget.board);
+      newTask.board.target = widget.board;
+      obx.store.box<Task>().put(newTask);
     }
   }
 
@@ -161,11 +163,29 @@ class TaskList extends StatefulWidget {
 
 class _TaskListState extends State<TaskList> {
   var tasks = <Task>[];
+  late final StreamSubscription<Query<Task>> taskQuerySubs;
 
   @override
   void initState() {
     super.initState();
     tasks = widget.board.tasks.where((task) => task.state == widget.taskState).toList();
+
+    //Listen to the tasks update
+    taskQuerySubs = obx.store
+        .box<Task>()
+        .query(Task_.board.equals(widget.board.id) & Task_.dbState.equals(widget.taskState.index))
+        .watch()
+        .listen((Query<Task> query) {
+      setState(() {
+        tasks = query.find();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    taskQuerySubs.cancel();
   }
 
   String getTaskStateString(TaskStates state) {
@@ -203,7 +223,7 @@ class _TaskListState extends State<TaskList> {
                   title: Text('${task.name}'),
                   onPressed: () {},
                   trailing:
-                      InfoBadge(source: Text(task.expectedDays.toString().replaceAll(RegExp(r'([.]*0)(?!.*\d)'), ''))),
+                  InfoBadge(source: Text(task.expectedDays.toString().replaceAll(RegExp(r'([.]*0)(?!.*\d)'), ''))),
                   subtitle: Text(
                       '${task.description?.substring(0, min(task.description!.length, 64))}${(task.description ?? '').length > 64 ? '...' : ''}'),
                 );
@@ -277,8 +297,8 @@ class _NewTaskDialogState extends State<NewTaskDialog> {
                 title: Text(infoBarString),
                 severity: InfoBarSeverity.warning,
                 onClose: () => setState(() {
-                      infoBarVisible = false;
-                    })),
+                  infoBarVisible = false;
+                })),
           TextBox(
             controller: taskName,
             header: 'New Task Name',
@@ -296,16 +316,16 @@ class _NewTaskDialogState extends State<NewTaskDialog> {
                         child: IconButton(
                             icon: const Icon(FluentIcons.switch_widget),
                             onPressed: () => setState(() {
-                                  showMarkdown = !showMarkdown;
-                                }))),
+                              showMarkdown = !showMarkdown;
+                            }))),
                     Tooltip(
                         message: 'Make Selection Bold',
                         child: IconButton(
                             icon: const Icon(FluentIcons.bold),
                             onPressed: () => setState(() {
-                                  replaceTextSelectionWith(taskDesc, (selection) => '**$selection**',
-                                      optionalOffset: 2);
-                                }))),
+                              replaceTextSelectionWith(taskDesc, (selection) => '**$selection**',
+                                  optionalOffset: 2);
+                            }))),
                     Tooltip(
                         message: 'Make Selection Italic',
                         child: IconButton(
@@ -399,20 +419,20 @@ class _NewTaskDialogState extends State<NewTaskDialog> {
                         },
                         items: const [
                           ComboBoxItem(
-                            value: -1,
-                            child: Text('Minor'),
-                          ),
-                          ComboBoxItem(
-                            value: 0,
-                            child: Text('Normal'),
+                            value: 2,
+                            child: Text('Critical'),
                           ),
                           ComboBoxItem(
                             value: 1,
                             child: Text('Major'),
                           ),
                           ComboBoxItem(
-                            value: 2,
-                            child: Text('Critical'),
+                            value: 0,
+                            child: Text('Normal'),
+                          ),
+                          ComboBoxItem(
+                            value: -1,
+                            child: Text('Minor'),
                           )
                         ]),
                   ],
