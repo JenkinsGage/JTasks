@@ -5,18 +5,23 @@
     src="https://img.shields.io/badge/fluent-design-blue?style=flat-square&color=7A7574&labelColor=0078D7"
   />
 </a>
-<br>
-**JTasks** is a cross-platform tasks management software build with flutter and fluent-ui that can assist you manage tasks and progress of your job or project especially for solo devs.
-> Warning The project is still under development!!
+  
+**JTasks** is a cross-platform task management software build with flutter and fluent-ui that can assist you manage tasks and progress of your job or project especially for solo devs.
+> **Warning** The project is still under development!!
 
 ## Features
 
 - Use board to manage your tasks
-  ![Board](./images/T_Board.PNG)
+  
+![Board](./images/T_Board.PNG)
+  
 - Easily create task with embedded markdown editor
-  ![NewTask](./images/T_NewTask.PNG)
+  
+![NewTask](./images/T_NewTask.PNG)
+  
 - Dark mode supported
-  ![DarkMode](./images/T_DarkMode.PNG)
+  
+![DarkMode](./images/T_DarkMode.PNG)
 
 ## Getting Started To Contribute
 
