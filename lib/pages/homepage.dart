@@ -1,14 +1,12 @@
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/material.dart' as m;
-
-import '../models.dart';
-import 'dashboard.dart';
-import 'board.dart';
+import 'package:jtasks/main.dart';
 import 'package:jtasks/utils.dart';
 
-import 'package:jtasks/main.dart';
-
+import '../models.dart';
 import '../objectbox.g.dart';
+import 'board.dart';
+import 'dashboard.dart';
 
 class HomePage extends StatefulWidget {
   final DataWrapper data;
@@ -188,7 +186,11 @@ PaneItem buildPaneBoardItem(Board board) {
                         showDeleteConfirmDialog(
                             context: context,
                             onDelete: () {
+                              // Delete board and the related tasks
+                              board = obx.store.box<Board>().get(board.id)!;
+                              obx.store.box<Task>().removeMany(board.tasks.map((element) => element.id).toList());
                               obx.store.box<Board>().remove(board.id);
+                              //
                             });
                       },
                       icon: const Icon(FluentIcons.delete)),
