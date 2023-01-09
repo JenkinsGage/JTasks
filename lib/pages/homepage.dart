@@ -139,22 +139,6 @@ class _HomePageState extends State<HomePage> {
 PaneItem buildPaneBoardItem(Board board) {
   FlyoutController optionsController = FlyoutController();
 
-  Widget? infoBadge;
-  if (board.state == BoardState.open) {
-    if (board.startedTime != null) {
-      infoBadge = board.dailyRequirementTime > 0
-          ? InfoBadge(
-              source: Text(board.dailyRequirementTimeFormatString),
-              color: DateTime.now().isBefore(board.expectedFinishedTime!) ? null : Colors.yellow,
-            )
-          : Icon(FluentIcons.skype_check, color: Colors.green, size: 18);
-    } else {
-      infoBadge = DateTime.now().isBefore(board.expectedStartTime!)
-          ? const Icon(FluentIcons.timer, size: 18)
-          : Icon(FluentIcons.alarm_clock, color: Colors.yellow);
-    }
-  }
-
   return PaneItem(
       icon: const Icon(FluentIcons.storyboard),
       body: BoardView(board: board),
@@ -205,7 +189,7 @@ PaneItem buildPaneBoardItem(Board board) {
         child: IconButton(icon: const Icon(FluentIcons.more), onPressed: optionsController.open),
       ),
       // Trailing info badge shows the ideal time need to progress today
-      infoBadge: infoBadge);
+      infoBadge: board.boardTodayStateWidget);
 }
 
 class NewBoardDialog extends StatefulWidget {

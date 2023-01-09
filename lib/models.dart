@@ -1,7 +1,10 @@
 import 'dart:math';
 
+import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/foundation.dart';
 import 'package:objectbox/objectbox.dart';
+
+import 'utils.dart';
 
 @Entity()
 class Board {
@@ -69,24 +72,42 @@ class Board {
 
   double get idealFinishedTime {
     return clampDouble(
-        (DateTime.now().difference(expectedStartTime!).inHours / 24.0) *
+        (todayEnd.difference(expectedStartTime!).inMinutes) *
             totalTasksExpectedTime /
-            (expectedFinishedTime!.difference(expectedStartTime!).inHours / 24.0),
+            (expectedFinishedTime!.difference(expectedStartTime!).inMinutes),
         0,
         totalTasksExpectedTime);
   }
 
   double get dailyRequirementTime {
     if (state == BoardState.open && startedTime != null) {
-      if (DateTime.now().compareTo(expectedFinishedTime!) <= 0) {
-        return max(idealFinishedTime - totalFinishedTasksExpectedTime, 0);
-      }
+      return max(idealFinishedTime - totalFinishedTasksExpectedTime, 0);
     }
     return 0;
   }
 
   String get dailyRequirementTimeFormatString =>
       dailyRequirementTime.toStringAsFixed(1).replaceAll(RegExp(r'([.]*0)(?!.*\d)'), '');
+
+  Widget? get boardTodayStateWidget {
+    // infoBadge that displays daily requirement, alarm and check
+    late final Widget? infoBadge;
+    if (state == BoardState.open) {
+      if (startedTime != null) {
+        infoBadge = dailyRequirementTime > 0
+            ? InfoBadge(
+                source: Text(dailyRequirementTimeFormatString),
+                color: DateTime.now().isBefore(expectedFinishedTime!) ? null : Colors.yellow,
+              )
+            : Icon(FluentIcons.skype_check, color: Colors.green, size: 18);
+      } else {
+        infoBadge = DateTime.now().isBefore(expectedStartTime!)
+            ? const Icon(FluentIcons.timer, size: 18)
+            : const Icon(FluentIcons.event_date_missed12, size: 18);
+      }
+    }
+    return infoBadge;
+  }
 }
 
 @Entity()
@@ -126,15 +147,16 @@ class Task {
 
   int? priority;
 
-  Task({this.id = 0,
-    this.name,
-    this.description,
-    this.state,
-    this.createdTime,
-    this.closedTime,
-    this.startedTime,
-    this.expectedDays,
-    this.priority});
+  Task(
+      {this.id = 0,
+      this.name,
+      this.description,
+      this.state,
+      this.createdTime,
+      this.closedTime,
+      this.startedTime,
+      this.expectedDays,
+      this.priority});
 }
 
 enum TaskState { backlog, open, progress, review, finished }

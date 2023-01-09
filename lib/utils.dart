@@ -54,3 +54,13 @@ Future<String?> getImageBase64FromPasteboard() async {
   }
   return null;
 }
+
+DateTime get todayEnd {
+  var now = DateTime.now();
+  return DateTime(now.year, now.month, now.day, 23, 59, 59);
+}
+
+DateTime get todayStart {
+  var now = DateTime.now();
+  return DateTime(now.year, now.month, now.day);
+}

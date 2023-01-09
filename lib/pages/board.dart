@@ -57,11 +57,7 @@ class _BoardViewState extends State<BoardView> {
                 padding: EdgeInsets.only(left: 8, right: 2),
                 child: Text('Today', style: TextStyle(fontSize: 16)),
               ),
-              widget.board.dailyRequirementTime > 0
-                  ? InfoBadge(
-                      source: Text(widget.board.dailyRequirementTimeFormatString),
-                    )
-                  : Icon(FluentIcons.skype_check, color: Colors.green, size: 18),
+              if (widget.board.boardTodayStateWidget != null) widget.board.boardTodayStateWidget!
             ],
           ),
           Align(
@@ -71,7 +67,7 @@ class _BoardViewState extends State<BoardView> {
               child: Row(
                 children: [
                   Text(
-                      'Deadline: ${widget.board.expectedFinishedTime?.month}/${widget.board.expectedFinishedTime?.day}/${widget.board.expectedFinishedTime?.year}  ${widget.board.expectedFinishedTime!.compareTo(DateTime.now()) >= 0 ? 'Left Days' : 'Overdue Days'}: ${widget.board.expectedFinishedTime!.difference(DateTime.now()).inDays.abs()}'),
+                      'Deadline: ${widget.board.expectedFinishedTime?.month}/${widget.board.expectedFinishedTime?.day}/${widget.board.expectedFinishedTime?.year}  ${widget.board.expectedFinishedTime!.compareTo(DateTime.now()) >= 0 ? 'Left Days' : 'Overdue Days'}: ${widget.board.expectedFinishedTime!.difference(todayEnd).inDays.abs()}'),
                 ],
               ),
             ),
