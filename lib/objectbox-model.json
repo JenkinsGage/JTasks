@@ -5,7 +5,7 @@
   "entities": [
     {
       "id": "1:3053100696962881921",
-      "lastPropertyId": "12:3642486414272895118",
+      "lastPropertyId": "13:1725787377034363633",
       "name": "Board",
       "properties": [
         {
@@ -35,11 +35,6 @@
           "type": 9
         },
         {
-          "id": "6:51875625055690719",
-          "name": "openedTime",
-          "type": 10
-        },
-        {
           "id": "10:9023180741906224937",
           "name": "expectedStartTime",
           "type": 10
@@ -53,6 +48,11 @@
           "id": "12:3642486414272895118",
           "name": "dbState",
           "type": 6
+        },
+        {
+          "id": "13:1725787377034363633",
+          "name": "startedTime",
+          "type": 10
         }
       ],
       "relations": []
@@ -131,7 +131,8 @@
   "retiredPropertyUids": [
     4293632953534199862,
     8036615142455374252,
-    4171967292495528958
+    4171967292495528958,
+    51875625055690719
   ],
   "retiredRelationUids": [],
   "version": 1

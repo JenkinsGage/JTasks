@@ -18,12 +18,14 @@ class ObjectBox {
 
   late final Stream<Query<Board>> openingBoardsStream;
   late final Stream<Query<Board>> closedBoardsStream;
+  late final Stream<Query<Task>> taskStream;
 
   ObjectBox._create(this.store) {
     openingBoardsQuery = store.box<Board>().query(Board_.dbState.equals(1)).build();
     closedBoardsQuery = store.box<Board>().query(Board_.dbState.equals(2)).build();
     openingBoardsStream = store.box<Board>().query(Board_.dbState.equals(1)).watch();
     closedBoardsStream = store.box<Board>().query(Board_.dbState.equals(2)).watch();
+    taskStream = store.box<Task>().query().watch();
   }
 
   /// Create an instance of ObjectBox to use throughout the app.

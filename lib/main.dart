@@ -26,36 +26,37 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     // Use providers to provide global data
     return MultiProvider(
-        providers: [
-          // ThemeProvider holds the theme data
-          ChangeNotifierProvider(
-            create: (context) => ThemeProvider(),
-          ),
-          ChangeNotifierProvider(
-            create: (context) => BoardsDataProvider(),
-          )
-        ],
-        builder: (context, child) {
-          final themeProvider = Provider.of<ThemeProvider>(context);
-          return FluentApp(
-            debugShowCheckedModeBanner: false,
-            // Specify theme and darkTheme
-            theme: ThemeData(
-                brightness: Brightness.light,
-                accentColor: Colors.teal,
-                iconTheme: const IconThemeData(size: 24),
-                fontFamily: GoogleFonts.notoSans().fontFamily),
-            darkTheme: ThemeData(
-                brightness: Brightness.dark,
-                accentColor: Colors.teal,
-                scaffoldBackgroundColor: const Color(0x040054ff),
-                iconTheme: const IconThemeData(size: 24, color: Colors.white),
-                fontFamily: GoogleFonts.notoSans().fontFamily),
-            themeMode: themeProvider.themeMode,
-            // HomePage
-            home: const HomePage(),
-          );
-        });
+      providers: [
+        // ThemeProvider holds the theme data
+        ChangeNotifierProvider(
+          create: (context) => ThemeProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => BoardsDataProvider(),
+        )
+      ],
+      child: Consumer<ThemeProvider>(
+        // HomePage
+        child: const HomePage(),
+        builder: (context, themeProvider, child) => FluentApp(
+          debugShowCheckedModeBanner: false,
+          // Specify theme and darkTheme
+          theme: ThemeData(
+              brightness: Brightness.light,
+              accentColor: Colors.teal,
+              iconTheme: const IconThemeData(size: 24),
+              fontFamily: GoogleFonts.notoSans().fontFamily),
+          darkTheme: ThemeData(
+              brightness: Brightness.dark,
+              accentColor: Colors.teal,
+              scaffoldBackgroundColor: const Color(0x040054ff),
+              iconTheme: const IconThemeData(size: 24, color: Colors.white),
+              fontFamily: GoogleFonts.notoSans().fontFamily),
+          themeMode: themeProvider.themeMode,
+          home: child,
+        ),
+      ),
+    );
   }
 }
 
@@ -97,11 +98,16 @@ class BoardsDataProvider extends ChangeNotifier {
 
     // Listen to the late changes and update using setters
     obx.closedBoardsStream.listen((Query<Board> query) {
-      openingBoards = query.find();
-    });
-    obx.openingBoardsStream.listen((Query<Board> query) {
       closedBoards = query.find();
     });
-    //
+    obx.openingBoardsStream.listen((Query<Board> query) {
+      openingBoards = query.find();
+    });
+    obx.taskStream.listen((Query<Task> query) {
+      // Update boards after the task updated
+      closedBoards = obx.closedBoardsQuery.find();
+      openingBoards = obx.openingBoardsQuery.find();
+      //
+    });
   }
 }

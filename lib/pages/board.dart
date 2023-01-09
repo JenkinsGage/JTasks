@@ -20,6 +20,7 @@ class BoardView extends StatefulWidget {
 }
 
 class _BoardViewState extends State<BoardView> {
+  /// Show Add Task Dialog and allows to add and save a new task
   void showAddTaskDialog(BuildContext context) async {
     final result = (await showDialog(context: context, builder: (context) => const NewTaskDialog()));
     if (result != 'Cancel') {
@@ -31,19 +32,17 @@ class _BoardViewState extends State<BoardView> {
           priority: m['priority'],
           createdTime: DateTime.now(),
           state: TaskState.open);
-      newTask.board.target = widget.board;
-      obx.store.box<Task>().put(newTask);
+      // Modify the board the widget belongs, to add the new created task and save the board to box.
+      // Instead of creating task and set its board target, to prevent the board related widgets stop to update.
+      widget.board.tasks.add(newTask);
+      obx.store.box<Board>().put(widget.board);
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return ScaffoldPage(
+      // Header of board view that displays Board Name, Deadline, Daily Requirement, Progress
       header: Column(
         children: [
           Row(
@@ -53,17 +52,48 @@ class _BoardViewState extends State<BoardView> {
               Padding(
                 padding: const EdgeInsets.only(left: 4),
                 child: Text(widget.board.name!, style: const TextStyle(fontSize: 24)),
-              )
+              ),
+              const Padding(
+                padding: EdgeInsets.only(left: 8, right: 2),
+                child: Text('Today', style: TextStyle(fontSize: 16)),
+              ),
+              widget.board.dailyRequirementTime > 0
+                  ? InfoBadge(
+                      source: Text(widget.board.dailyRequirementTimeFormatString),
+                    )
+                  : Icon(FluentIcons.skype_check, color: Colors.green, size: 18),
             ],
           ),
           Align(
             alignment: Alignment.centerLeft,
             child: Padding(
               padding: const EdgeInsets.only(left: 16),
-              child: Text(
-                  'Deadline: ${widget.board.expectedFinishedTime?.month}/${widget.board.expectedFinishedTime?.day}/${widget.board.expectedFinishedTime?.year}  ${widget.board.expectedFinishedTime!.compareTo(DateTime.now()) >= 0 ? 'Left Days' : 'Overdue Days'}: ${widget.board.expectedFinishedTime!.difference(DateTime.now()).inDays.abs()}'),
+              child: Row(
+                children: [
+                  Text(
+                      'Deadline: ${widget.board.expectedFinishedTime?.month}/${widget.board.expectedFinishedTime?.day}/${widget.board.expectedFinishedTime?.year}  ${widget.board.expectedFinishedTime!.compareTo(DateTime.now()) >= 0 ? 'Left Days' : 'Overdue Days'}: ${widget.board.expectedFinishedTime!.difference(DateTime.now()).inDays.abs()}'),
+                ],
+              ),
             ),
           ),
+          // Display board progress bar if has tasks
+          if (widget.board.totalTasksExpectedTime > 0)
+            Row(
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(left: 16),
+                  child: Icon(FluentIcons.running, size: 18),
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(left: 1, right: 6),
+                  child: Text('Progress:'),
+                ),
+                ProgressBar(
+                  value: 100 * widget.board.totalFinishedTasksExpectedTime / widget.board.totalTasksExpectedTime,
+                )
+              ],
+            ),
+          //
           const Divider(),
         ],
       ),
@@ -76,13 +106,12 @@ class _BoardViewState extends State<BoardView> {
             overflowBehavior: CommandBarOverflowBehavior.dynamicOverflow,
             compactBreakpointWidth: 768,
             primaryItems: [
-              if (widget.board.openedTime == null)
+              if (widget.board.startedTime == null)
                 CommandBarButton(
-                  icon: const Icon(FluentIcons.accept),
+                  icon: const Icon(FluentIcons.running),
                   label: const Text('Start'),
                   onPressed: () {
-                    widget.board.state = BoardState.open;
-                    widget.board.openedTime = DateTime.now();
+                    widget.board.startedTime = DateTime.now();
                     obx.store.box<Board>().put(widget.board);
                   },
                 ),

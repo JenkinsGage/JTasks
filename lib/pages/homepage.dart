@@ -19,8 +19,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int paneIndex = 0;
 
-  String? selectedBoard;
-
   /// Show AddBoard Dialog and allow to create and save a new board
   void showAddBoardDialog(BuildContext context) async {
     final result = await showDialog(
@@ -44,94 +42,119 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final boardsDataProvider = Provider.of<BoardsDataProvider>(context);
-    return NavigationView(
-      appBar: const NavigationAppBar(title: Text("JTasks", style: TextStyle(fontWeight: FontWeight.bold))),
-      pane: NavigationPane(
-          // Search bar
-          header: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: AutoSuggestBox<String>(
-              placeholder: 'Search',
-              // TODO: Allow searching for everything including closed boards, task names, description...
-              items: boardsDataProvider.openingBoards
-                  .map((e) => AutoSuggestBoxItem(value: e.name, label: e.name!))
-                  .toList(),
-              onSelected: (value) {
+
+    return Consumer<BoardsDataProvider>(
+      builder: (context, boardsDataProvider, child) {
+        // Construct the boards pane item list
+        List<NavigationPaneItem> boardsPaneItems = <NavigationPaneItem>[
+              PaneItemHeader(
+                header: Row(
+                  children: [
+                    Expanded(child: Text('${boardsDataProvider.openingBoards.length} OPENING')),
+                    IconButton(
+                      icon: const Icon(FluentIcons.add_in),
+                      onPressed: () {
+                        showAddBoardDialog(context);
+                      },
+                    )
+                  ],
+                ),
+              )
+            ] +
+            boardsDataProvider.openingBoards.map((e) => buildPaneBoardItem(e)).toList() +
+            [
+              PaneItemHeader(header: Row(children: [Text('${boardsDataProvider.closedBoards.length} CLOSED')]))
+            ] +
+            boardsDataProvider.closedBoards.map((e) => buildPaneBoardItem(e)).toList();
+        //
+
+        return NavigationView(
+          appBar: const NavigationAppBar(title: Text("JTasks", style: TextStyle(fontWeight: FontWeight.bold))),
+          pane: NavigationPane(
+              // Search Bar
+              autoSuggestBox: AutoSuggestBox<int>(
+                placeholder: 'Search',
+                // TODO: Allow searching for everything including closed boards, task names, description...
+                items: boardsDataProvider.openingBoards
+                        .map((e) => AutoSuggestBoxItem(value: e.id, label: e.name!))
+                        .toList() +
+                    boardsDataProvider.closedBoards
+                        .map((e) => AutoSuggestBoxItem(value: e.id, label: e.name!))
+                        .toList(),
+                // TODO: Switch board after select the searched item
+                onSelected: (id) {},
+              ),
+              // Options of settings and switch theme mode
+              footerItems: [
+                PaneItemHeader(
+                  header: Row(children: [
+                    Tooltip(
+                      message: 'Settings',
+                      child: IconButton(icon: const Icon(FluentIcons.settings), onPressed: () {}),
+                    ),
+                    Tooltip(
+                      message: themeProvider.themeMode == ThemeMode.light ? 'Dark Mode' : 'Light Mode',
+                      child: IconButton(
+                          icon: themeProvider.themeMode == ThemeMode.light
+                              ? const Icon(FluentIcons.clear_night)
+                              : const Icon(FluentIcons.sunny),
+                          onPressed: () {
+                            themeProvider.themeMode =
+                                (themeProvider.themeMode == ThemeMode.light) ? ThemeMode.dark : ThemeMode.light;
+                          }),
+                    )
+                  ]),
+                ),
+                PaneItemSeparator()
+              ],
+              //
+              selected: paneIndex,
+              onChanged: (value) {
                 setState(() {
-                  selectedBoard = value.label;
+                  paneIndex = value;
                 });
               },
-            ),
-          ),
-          //
-          // Options of settings and switch theme mode
-          footerItems: [
-            PaneItemHeader(
-              header: Row(children: [
-                Tooltip(
-                  message: 'Settings',
-                  child: IconButton(icon: const Icon(FluentIcons.settings), onPressed: () {}),
-                ),
-                Tooltip(
-                  message: themeProvider.themeMode == ThemeMode.light ? 'Dark Mode' : 'Light Mode',
-                  child: IconButton(
-                      icon: themeProvider.themeMode == ThemeMode.light
-                          ? const Icon(FluentIcons.clear_night)
-                          : const Icon(FluentIcons.sunny),
-                      onPressed: () {
-                        themeProvider.themeMode =
-                            (themeProvider.themeMode == ThemeMode.light) ? ThemeMode.dark : ThemeMode.light;
-                      }),
-                )
+              displayMode: PaneDisplayMode.auto,
+              items: [
+                // Dashboard pane
+                PaneItem(
+                    icon: const Icon(FluentIcons.view_dashboard),
+                    body: const Dashboard(),
+                    title: const Text('Dashboard')),
+                PaneItemSeparator(),
+                // Boards pane
+                PaneItemExpander(
+                    icon: const Icon(FluentIcons.boards),
+                    title: const Text('Boards'),
+                    items: boardsPaneItems,
+                    body: Container())
               ]),
-            ),
-            PaneItemSeparator()
-          ],
-          //
-          selected: paneIndex,
-          onChanged: (value) {
-            setState(() {
-              paneIndex = value;
-            });
-          },
-          displayMode: PaneDisplayMode.auto,
-          items: [
-            // Dashboard pane
-            PaneItem(
-                icon: const Icon(FluentIcons.view_dashboard), body: const Dashboard(), title: const Text('Dashboard')),
-            PaneItemSeparator(),
-            // Boards pane
-            PaneItemExpander(
-                icon: const Icon(FluentIcons.boards),
-                title: const Text('Boards'),
-                items: <NavigationPaneItem>[
-                      PaneItemHeader(
-                          header: Row(
-                        children: [
-                          Expanded(child: Text('${boardsDataProvider.openingBoards.length} OPENING')),
-                          IconButton(
-                            icon: const Icon(FluentIcons.add_in),
-                            onPressed: () {
-                              showAddBoardDialog(context);
-                            },
-                          )
-                        ],
-                      ))
-                    ] +
-                    boardsDataProvider.openingBoards.map((e) => buildPaneBoardItem(e)).toList() +
-                    [
-                      PaneItemHeader(header: Row(children: const [Text('0 CLOSED')]))
-                    ] +
-                    boardsDataProvider.closedBoards.map((e) => buildPaneBoardItem(e)).toList(),
-                body: Container())
-          ]),
+        );
+      },
     );
   }
 }
 
+/// Build pane item according to the board instance
 PaneItem buildPaneBoardItem(Board board) {
   FlyoutController optionsController = FlyoutController();
+
+  Widget? infoBadge;
+  if (board.state == BoardState.open) {
+    if (board.startedTime != null) {
+      infoBadge = board.dailyRequirementTime > 0
+          ? InfoBadge(
+              source: Text(board.dailyRequirementTimeFormatString),
+              color: DateTime.now().isBefore(board.expectedFinishedTime!) ? null : Colors.yellow,
+            )
+          : Icon(FluentIcons.skype_check, color: Colors.green, size: 18);
+    } else {
+      infoBadge = DateTime.now().isBefore(board.expectedStartTime!)
+          ? const Icon(FluentIcons.timer, size: 18)
+          : Icon(FluentIcons.alarm_clock, color: Colors.yellow);
+    }
+  }
+
   return PaneItem(
       icon: const Icon(FluentIcons.storyboard),
       body: BoardView(board: board),
@@ -149,6 +172,7 @@ PaneItem buildPaneBoardItem(Board board) {
                       text: const Text('Edit'),
                       onPressed: () {
                         Navigator.pop(context);
+                        // TODO: Allow user to edit the board info
                       },
                       icon: const Icon(FluentIcons.edit)),
                   if (board.state == BoardState.open)
@@ -180,7 +204,8 @@ PaneItem buildPaneBoardItem(Board board) {
         },
         child: IconButton(icon: const Icon(FluentIcons.more), onPressed: optionsController.open),
       ),
-      infoBadge: board.tasks.isNotEmpty ? InfoBadge(source: Text('${board.tasks.length}')) : null);
+      // Trailing info badge shows the ideal time need to progress today
+      infoBadge: infoBadge);
 }
 
 class NewBoardDialog extends StatefulWidget {
@@ -230,7 +255,7 @@ class _NewBoardDialogState extends State<NewBoardDialog> {
             header: 'Expected Start Time',
             onChanged: (value) {
               setState(() {
-                expectedStartTime = value;
+                expectedStartTime = DateTime(value.year, value.month, value.day, 0, 0, 0);
               });
             },
           ),
