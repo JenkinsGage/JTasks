@@ -69,7 +69,9 @@ class _HomePageState extends State<HomePage> {
         //
 
         return NavigationView(
-          appBar: const NavigationAppBar(title: Text("JTasks", style: TextStyle(fontWeight: FontWeight.bold))),
+          appBar: NavigationAppBar(
+              automaticallyImplyLeading: false,
+              title: Text("JTasks |$version", style: const TextStyle(fontWeight: FontWeight.bold))),
           pane: NavigationPane(
               // Search Bar
               autoSuggestBox: AutoSuggestBox<int>(

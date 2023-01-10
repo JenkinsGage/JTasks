@@ -247,6 +247,12 @@ class _TaskListState extends State<TaskList> {
             onAccept: (Task data) {
               // Set the dragging task to corresponding state and save after dropped
               data.state = widget.taskState;
+              if (widget.taskState == TaskState.progress) {
+                data.startedTime = DateTime.now();
+              } else if (widget.taskState == TaskState.finished) {
+                data.startedTime ??= DateTime.now();
+                data.closedTime = DateTime.now();
+              }
               obx.store.box<Task>().put(data);
             },
             onWillAccept: (Task? data) {
@@ -264,7 +270,7 @@ class _TaskListState extends State<TaskList> {
                 return Draggable<Task>(
                   data: task,
                   feedback: SizedBox(
-                      height: 50,
+                    // height: 50,
                       width: 200,
                       child: ListTile(
                           tileColor: ButtonState.resolveWith(
@@ -285,7 +291,13 @@ class _TaskListState extends State<TaskList> {
                   ),
                   child: ListTile(
                     title: Text('${task.name}'),
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.of(context).push(FluentPageRoute(
+                        builder: (context) {
+                          return TaskDetailPage(task: task);
+                        },
+                      ));
+                    },
                     trailing: InfoBadge(
                         source: Text(task.expectedDays.toString().replaceAll(RegExp(r'([.]*0)(?!.*\d)'), ''))),
                     subtitle: Text(
@@ -506,5 +518,53 @@ class _NewTaskDialogState extends State<NewTaskDialog> {
             ],
           )
         ]));
+  }
+}
+
+class TaskDetailPage extends StatefulWidget {
+  final Task task;
+
+  const TaskDetailPage({Key? key, required this.task}) : super(key: key);
+
+  @override
+  State<TaskDetailPage> createState() => _TaskDetailPageState();
+}
+
+class _TaskDetailPageState extends State<TaskDetailPage> {
+  @override
+  Widget build(BuildContext context) {
+    return NavigationView(
+        content: Column(
+          children: [
+            ListTile(
+              title: Text(
+                  '${widget.task.name} [${widget.task.stateAsString}] [${widget.task.priorityAsString}] [Ideal ${widget.task.expectedDays} Days]',
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Created Time: ${widget.task.createdTime.toString().substring(0, 16)}'),
+                  if (widget.task.startedTime != null)
+                    Text(
+                        'Started Time: ${widget.task.startedTime.toString().substring(0, 16)} | Time Since Started: ${(DateTime.now().difference(widget.task.startedTime!).inMinutes / 1440).toStringAsFixed(2)} Days')
+                  else
+                    const Text('Not Started Yet'),
+                  if (widget.task.closedTime != null)
+                    Text(
+                        'Finished At ${widget.task.closedTime.toString().substring(0, 16)} | Actual Working Time: ${(widget.task.closedTime!.difference(widget.task.startedTime!).inMinutes / 1440).toStringAsFixed(2)} Days')
+                ],
+              ),
+              leading: const Icon(FluentIcons.task_manager),
+            ),
+            const Divider(),
+            const ListTile(
+              title: Text('Description', style: TextStyle(fontWeight: FontWeight.bold)),
+              leading: Icon(FluentIcons.text_document),
+            ),
+            Flexible(child: Markdown(data: widget.task.description ?? '', selectable: true)),
+          ],
+        ),
+        appBar: NavigationAppBar(
+            title: Text("Task ${widget.task.name}", style: const TextStyle(fontWeight: FontWeight.bold))));
   }
 }

@@ -64,3 +64,7 @@ DateTime get todayStart {
   var now = DateTime.now();
   return DateTime(now.year, now.month, now.day);
 }
+
+String get version {
+  return 'Ver: Test 0.1';
+}

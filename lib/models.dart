@@ -157,6 +157,28 @@ class Task {
       this.startedTime,
       this.expectedDays,
       this.priority});
+
+  String get priorityAsString {
+    Map<int, String> map = {-1: 'Minor', 0: 'Normal', 1: 'Major', 2: 'Critical'};
+    return map[priority!]!;
+  }
+
+  String get stateAsString {
+    switch (state) {
+      case TaskState.backlog:
+        return 'Backlog';
+      case TaskState.open:
+        return 'Open';
+      case TaskState.progress:
+        return 'Progress';
+      case TaskState.review:
+        return 'Review';
+      case TaskState.finished:
+        return 'Finished';
+      default:
+        return '';
+    }
+  }
 }
 
 enum TaskState { backlog, open, progress, review, finished }
