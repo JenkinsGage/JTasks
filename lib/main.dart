@@ -9,9 +9,11 @@ import 'objectbox.g.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  obx = await ObjectBox.create();
 
-  runApp(const MyApp());
+  if (await checkStoragePermission()) {
+    obx = await ObjectBox.create();
+    runApp(const MyApp());
+  }
 }
 
 class MyApp extends StatefulWidget {
