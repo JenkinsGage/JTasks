@@ -10,20 +10,13 @@ import 'objectbox.g.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  if (await checkStoragePermission()) {
-    obx = await ObjectBox.create();
-    runApp(const MyApp());
-  }
+  obx = await ObjectBox.create();
+  runApp(const MyApp());
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  @override
-  State<MyApp> createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     // Use providers to provide global data

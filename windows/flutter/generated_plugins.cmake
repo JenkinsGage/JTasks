@@ -5,7 +5,6 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   objectbox_flutter_libs
   pasteboard
-        permission_handler_windows
         url_launcher_windows
 )
 
