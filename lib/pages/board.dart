@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:fluent_ui/fluent_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -8,6 +9,7 @@ import 'package:jtasks/database.dart';
 import 'package:jtasks/models.dart';
 import 'package:jtasks/objectbox.g.dart';
 import 'package:jtasks/utils.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class BoardView extends StatefulWidget {
@@ -20,6 +22,8 @@ class BoardView extends StatefulWidget {
 }
 
 class _BoardViewState extends State<BoardView> {
+  final listTitleGroup = AutoSizeGroup();
+
   /// Show Add Task Dialog and allows to add and save a new task
   void showAddTaskDialog(BuildContext context) async {
     final result = (await showDialog(context: context, builder: (context) => const NewTaskDialog()));
@@ -159,14 +163,17 @@ class _BoardViewState extends State<BoardView> {
 
           // Task lists that filled the rest space
           Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TaskList(board: widget.board, taskState: TaskState.open),
-                TaskList(board: widget.board, taskState: TaskState.progress),
-                TaskList(board: widget.board, taskState: TaskState.review),
-                TaskList(board: widget.board, taskState: TaskState.finished)
-              ],
+            child: Provider.value(
+              value: listTitleGroup,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TaskList(board: widget.board, taskState: TaskState.open),
+                  TaskList(board: widget.board, taskState: TaskState.progress),
+                  TaskList(board: widget.board, taskState: TaskState.review),
+                  TaskList(board: widget.board, taskState: TaskState.finished)
+                ],
+              ),
             ),
           ),
           //
@@ -236,7 +243,13 @@ class _TaskListState extends State<TaskList> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // List Name
-          ListTile(title: Text(getTaskStateString(widget.taskState), style: const TextStyle(fontSize: 16))),
+          ListTile(
+              title: AutoSizeText(
+            getTaskStateString(widget.taskState),
+            style: const TextStyle(fontSize: 16),
+            maxLines: 1,
+            group: context.read<AutoSizeGroup>(),
+          )),
 
           DragTarget<Task>(
             builder: (context, candidateData, rejectedData) {
