@@ -9,6 +9,7 @@ import 'package:jtasks/database.dart';
 import 'package:jtasks/models.dart';
 import 'package:jtasks/objectbox.g.dart';
 import 'package:jtasks/utils.dart';
+import '../widgets/board_info_dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -132,7 +133,10 @@ class _BoardViewState extends State<BoardView> {
               CommandBarButton(
                 icon: const Icon(FluentIcons.edit),
                 label: const Text('Edit'),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.pop(context);
+                  BoardInfo.editBoard(context, widget.board);
+                },
               ),
               CommandBarButton(
                 icon: const Icon(FluentIcons.save_and_close),

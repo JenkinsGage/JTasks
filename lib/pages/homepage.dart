@@ -1,11 +1,11 @@
 import 'package:fluent_ui/fluent_ui.dart';
-import 'package:flutter/material.dart' as m;
 import 'package:jtasks/database.dart';
 import 'package:jtasks/main.dart';
 import 'package:jtasks/utils.dart';
 import 'package:provider/provider.dart';
 
 import '../models.dart';
+import '../widgets/board_info_dialog.dart';
 import 'board.dart';
 import 'dashboard.dart';
 
@@ -18,26 +18,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int paneIndex = 0;
-
-  /// Show AddBoard Dialog and allow to create and save a new board
-  void showAddBoardDialog(BuildContext context) async {
-    final result = await showDialog(
-      context: context,
-      builder: (context) => const NewBoardDialog(),
-    );
-    if (result != 'Cancel') {
-      // Create the board from returned dialog values
-      final newBoardDetails = result as List;
-      final newBoard = Board(
-          name: newBoardDetails[0],
-          description: newBoardDetails[1],
-          createdTime: DateTime.now(),
-          expectedStartTime: newBoardDetails[2],
-          expectedFinishedTime: newBoardDetails[3]);
-      // Save the new board to db
-      obx.store.box<Board>().put(newBoard);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +34,7 @@ class _HomePageState extends State<HomePage> {
                     IconButton(
                       icon: const Icon(FluentIcons.add_in),
                       onPressed: () {
-                        showAddBoardDialog(context);
+                        BoardInfo.newBoard(context);
                       },
                     )
                   ],
@@ -158,7 +138,7 @@ PaneItem buildPaneBoardItem(Board board) {
                       text: const Text('Edit'),
                       onPressed: () {
                         Navigator.pop(context);
-                        // TODO: Allow user to edit the board info
+                        BoardInfo.editBoard(context, board);
                       },
                       icon: const Icon(FluentIcons.edit)),
                   if (board.state == BoardState.open)
@@ -192,104 +172,4 @@ PaneItem buildPaneBoardItem(Board board) {
       ),
       // Trailing info badge shows the ideal time need to progress today
       infoBadge: board.boardTodayStateWidget);
-}
-
-class NewBoardDialog extends StatefulWidget {
-  const NewBoardDialog({Key? key}) : super(key: key);
-
-  @override
-  State<NewBoardDialog> createState() => _NewBoardDialogState();
-}
-
-class _NewBoardDialogState extends State<NewBoardDialog> {
-  var boardName = TextEditingController();
-  var boardDesc = TextEditingController();
-  bool infoBarVisible = false;
-  String infoBarString = '';
-  DateTime? expectedStartTime;
-  DateTime? expectedFinishedTime;
-
-  @override
-  Widget build(BuildContext context) {
-    return ContentDialog(
-      title: const Text('New Board'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (infoBarVisible)
-            InfoBar(
-              title: Text(infoBarString),
-              severity: InfoBarSeverity.warning,
-              onClose: () => setState(() {
-                infoBarVisible = false;
-              }),
-            ),
-          TextBox(
-            controller: boardName,
-            header: 'New Board Name',
-            placeholder: 'Name',
-          ),
-          TextBox(
-            controller: boardDesc,
-            header: 'Description',
-            placeholder: 'Desc',
-            maxLines: null,
-          ),
-          const m.PopupMenuDivider(),
-          DatePicker(
-            selected: expectedStartTime,
-            header: 'Expected Start Time',
-            onChanged: (value) {
-              setState(() {
-                expectedStartTime = DateTime(value.year, value.month, value.day, 0, 0, 0);
-              });
-            },
-          ),
-          DatePicker(
-            selected: expectedFinishedTime,
-            header: 'Expected Finished Time',
-            onChanged: (value) {
-              setState(() {
-                expectedFinishedTime = DateTime(value.year, value.month, value.day, 23, 59, 59);
-              });
-            },
-          )
-        ],
-      ),
-      actions: [
-        Button(
-            child: const Text('Cancel'),
-            onPressed: () {
-              Navigator.pop(context, 'Cancel');
-            }),
-        FilledButton(
-            child: const Text('Add'),
-            onPressed: () {
-              bool boardValid = true;
-              setState(() {
-                if (expectedFinishedTime == null || expectedStartTime == null) {
-                  infoBarString =
-                      "You'd better plan your time well. Expected start and finished time are both required.";
-                  infoBarVisible = true;
-                  boardValid = false;
-                } else if (expectedFinishedTime!.compareTo(expectedStartTime!) < 0) {
-                  infoBarString = 'Expected finished time should not be earlier than start time';
-                  infoBarVisible = true;
-                  boardValid = false;
-                }
-                if (boardName.text.isEmpty) {
-                  setState(() {
-                    infoBarString = 'A valid board name is required.';
-                    infoBarVisible = true;
-                    boardValid = false;
-                  });
-                }
-                if (boardValid) {
-                  Navigator.pop(context, [boardName.text, boardDesc.text, expectedStartTime, expectedFinishedTime]);
-                }
-              });
-            })
-      ],
-    );
-  }
 }
