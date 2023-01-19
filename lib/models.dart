@@ -56,7 +56,8 @@ class Board {
       required this.expectedStartTime,
       required this.expectedFinishedTime});
 
-  double get totalTasksExpectedTime => tasks.fold(0, (previousValue, task) => previousValue + task.expectedDays!);
+  double get totalTasksExpectedTime => tasks.fold(
+      0, (previousValue, task) => previousValue + task.expectedDays!);
 
   double get totalFinishedTasksExpectedTime {
     double finishedTime = tasks.fold(0, (previousValue, task) {
@@ -68,7 +69,8 @@ class Board {
     return finishedTime;
   }
 
-  double get totalUnfinishedTasksExpectedTime => totalTasksExpectedTime - totalFinishedTasksExpectedTime;
+  double get totalUnfinishedTasksExpectedTime =>
+      totalTasksExpectedTime - totalFinishedTasksExpectedTime;
 
   double get idealFinishedTime {
     return clampDouble(
@@ -86,8 +88,9 @@ class Board {
     return 0;
   }
 
-  String get dailyRequirementTimeFormatString =>
-      dailyRequirementTime.toStringAsFixed(1).replaceAll(RegExp(r'([.]*0)(?!.*\d)'), '');
+  String get dailyRequirementTimeFormatString => dailyRequirementTime
+      .toStringAsFixed(1)
+      .replaceAll(RegExp(r'([.]*0)(?!.*\d)'), '');
 
   Widget? get boardTodayStateWidget {
     // infoBadge that displays daily requirement, alarm and check
@@ -97,7 +100,9 @@ class Board {
         infoBadge = dailyRequirementTime > 0
             ? InfoBadge(
                 source: Text(dailyRequirementTimeFormatString),
-                color: DateTime.now().isBefore(expectedFinishedTime!) ? null : Colors.yellow,
+                color: DateTime.now().isBefore(expectedFinishedTime!)
+                    ? null
+                    : Colors.yellow,
               )
             : Icon(FluentIcons.skype_check, color: Colors.green, size: 18);
       } else {
@@ -105,6 +110,8 @@ class Board {
             ? const Icon(FluentIcons.timer, size: 18)
             : const Icon(FluentIcons.event_date_missed12, size: 18);
       }
+    } else {
+      infoBadge = null;
     }
     return infoBadge;
   }
@@ -159,7 +166,12 @@ class Task {
       this.priority});
 
   String get priorityAsString {
-    Map<int, String> map = {-1: 'Minor', 0: 'Normal', 1: 'Major', 2: 'Critical'};
+    Map<int, String> map = {
+      -1: 'Minor',
+      0: 'Normal',
+      1: 'Major',
+      2: 'Critical'
+    };
     return map[priority!]!;
   }
 

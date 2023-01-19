@@ -27,7 +27,8 @@ class _BoardViewState extends State<BoardView> {
 
   /// Show Add Task Dialog and allows to add and save a new task
   void showAddTaskDialog(BuildContext context) async {
-    final result = (await showDialog(context: context, builder: (context) => const NewTaskDialog()));
+    final result = (await showDialog(
+        context: context, builder: (context) => const NewTaskDialog()));
     if (result != 'Cancel') {
       final m = result as Map;
       final newTask = Task(
@@ -56,13 +57,15 @@ class _BoardViewState extends State<BoardView> {
               const Icon(FluentIcons.storyboard),
               Padding(
                 padding: const EdgeInsets.only(left: 4),
-                child: Text(widget.board.name!, style: const TextStyle(fontSize: 24)),
+                child: Text(widget.board.name!,
+                    style: const TextStyle(fontSize: 24)),
               ),
               const Padding(
                 padding: EdgeInsets.only(left: 8, right: 2),
                 child: Text('Today', style: TextStyle(fontSize: 16)),
               ),
-              if (widget.board.boardTodayStateWidget != null) widget.board.boardTodayStateWidget!
+              if (widget.board.boardTodayStateWidget != null)
+                widget.board.boardTodayStateWidget!
             ],
           ),
           Align(
@@ -90,7 +93,9 @@ class _BoardViewState extends State<BoardView> {
                   child: Text('Progress:'),
                 ),
                 ProgressBar(
-                  value: 100 * widget.board.totalFinishedTasksExpectedTime / widget.board.totalTasksExpectedTime,
+                  value: 100 *
+                      widget.board.totalFinishedTasksExpectedTime /
+                      widget.board.totalTasksExpectedTime,
                 )
               ],
             ),
@@ -141,7 +146,11 @@ class _BoardViewState extends State<BoardView> {
               CommandBarButton(
                 icon: const Icon(FluentIcons.save_and_close),
                 label: const Text('Close'),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.pop(context);
+                  widget.board.state = BoardState.closed;
+                  obx.store.box<Board>().put(widget.board);
+                },
               ),
               CommandBarButton(
                 icon: const Icon(FluentIcons.archive),
@@ -191,7 +200,8 @@ class TaskList extends StatefulWidget {
   final Board board;
   final TaskState taskState;
 
-  const TaskList({Key? key, required this.board, required this.taskState}) : super(key: key);
+  const TaskList({Key? key, required this.board, required this.taskState})
+      : super(key: key);
 
   @override
   State<TaskList> createState() => _TaskListState();
@@ -204,12 +214,15 @@ class _TaskListState extends State<TaskList> {
   @override
   void initState() {
     super.initState();
-    tasks = widget.board.tasks.where((task) => task.state == widget.taskState).toList();
+    tasks = widget.board.tasks
+        .where((task) => task.state == widget.taskState)
+        .toList();
 
     //Listen to the tasks update
     taskQuerySubs = obx.store
         .box<Task>()
-        .query(Task_.board.equals(widget.board.id) & Task_.dbState.equals(widget.taskState.index))
+        .query(Task_.board.equals(widget.board.id) &
+            Task_.dbState.equals(widget.taskState.index))
         .watch()
         .listen((Query<Task> query) {
       setState(() {
@@ -287,21 +300,27 @@ class _TaskListState extends State<TaskList> {
                 return Draggable<Task>(
                   data: task,
                   feedback: SizedBox(
-                    // height: 50,
+                      // height: 50,
                       width: 200,
                       child: ListTile(
-                          tileColor: ButtonState.resolveWith(
-                              (states) => FluentTheme.of(context).resources.subtleFillColorSecondary),
+                          tileColor: ButtonState.resolveWith((states) =>
+                              FluentTheme.of(context)
+                                  .resources
+                                  .subtleFillColorSecondary),
                           title: Text('${task.name}'))),
                   childWhenDragging: Transform.translate(
                     offset: const Offset(8, 0),
                     child: ListTile(
-                      tileColor: ButtonState.resolveWith(
-                          (states) => FluentTheme.of(context).resources.subtleFillColorTertiary),
+                      tileColor: ButtonState.resolveWith((states) =>
+                          FluentTheme.of(context)
+                              .resources
+                              .subtleFillColorTertiary),
                       title: Text('${task.name}'),
                       onPressed: () {},
                       trailing: InfoBadge(
-                          source: Text(task.expectedDays.toString().replaceAll(RegExp(r'([.]*0)(?!.*\d)'), ''))),
+                          source: Text(task.expectedDays
+                              .toString()
+                              .replaceAll(RegExp(r'([.]*0)(?!.*\d)'), ''))),
                       subtitle: Text(
                           '${task.description?.substring(0, min(task.description!.length, 64))}${(task.description ?? '').length > 64 ? '...' : ''}'),
                     ),
@@ -316,7 +335,9 @@ class _TaskListState extends State<TaskList> {
                       ));
                     },
                     trailing: InfoBadge(
-                        source: Text(task.expectedDays.toString().replaceAll(RegExp(r'([.]*0)(?!.*\d)'), ''))),
+                        source: Text(task.expectedDays
+                            .toString()
+                            .replaceAll(RegExp(r'([.]*0)(?!.*\d)'), ''))),
                     subtitle: Text(
                         '${task.description?.substring(0, min(task.description!.length, 64))}${(task.description ?? '').length > 64 ? '...' : ''}'),
                   ),
@@ -364,7 +385,8 @@ class _NewTaskDialogState extends State<NewTaskDialog> {
               bool taskValid = true;
               setState(() {
                 if (expectedDaysController.text.isEmpty) {
-                  infoBarString = 'It is good to specify your expected days to finish the task';
+                  infoBarString =
+                      'It is good to specify your expected days to finish the task';
                   infoBarVisible = true;
                   taskValid = false;
                 }
@@ -417,21 +439,24 @@ class _NewTaskDialogState extends State<NewTaskDialog> {
                         child: IconButton(
                             icon: const Icon(FluentIcons.bold),
                             onPressed: () => setState(() {
-                                  replaceTextSelectionWith(taskDesc, (selection) => '**$selection**',
+                                  replaceTextSelectionWith(
+                                      taskDesc, (selection) => '**$selection**',
                                       optionalOffset: 2);
                                 }))),
                     Tooltip(
                         message: 'Make Selection Italic',
                         child: IconButton(
                             icon: const Icon(FluentIcons.italic),
-                            onPressed: () =>
-                                replaceTextSelectionWith(taskDesc, (selection) => '*$selection*', optionalOffset: 1))),
+                            onPressed: () => replaceTextSelectionWith(
+                                taskDesc, (selection) => '*$selection*',
+                                optionalOffset: 1))),
                     Tooltip(
                         message: 'Insert a Link',
                         child: IconButton(
                             icon: const Icon(FluentIcons.link),
                             onPressed: () {
-                              replaceTextSelectionWith(taskDesc, (selection) => '[Link](https://$selection)',
+                              replaceTextSelectionWith(taskDesc,
+                                  (selection) => '[Link](https://$selection)',
                                   optionalOffset: 15);
                             })),
                     Tooltip(
@@ -441,21 +466,26 @@ class _NewTaskDialogState extends State<NewTaskDialog> {
                             onPressed: () async {
                               final b64 = await getImageBase64FromPasteboard();
                               if (b64 != null) {
-                                replaceTextSelectionWith(taskDesc, (selection) => '![img](data:image/png;base64,$b64)');
+                                replaceTextSelectionWith(
+                                    taskDesc,
+                                    (selection) =>
+                                        '![img](data:image/png;base64,$b64)');
                               }
                             })),
                     Tooltip(
                         message: 'Insert a Code Block',
                         child: IconButton(
                             icon: const Icon(FluentIcons.code),
-                            onPressed: () => replaceTextSelectionWith(taskDesc, (selection) => '```\n$selection\n```',
+                            onPressed: () => replaceTextSelectionWith(
+                                taskDesc, (selection) => '```\n$selection\n```',
                                 optionalOffset: 4))),
                     Tooltip(
                         message: 'Prompt The Selection To Header',
                         child: IconButton(
                             icon: const Text('H'),
-                            onPressed: () =>
-                                replaceTextSelectionWith(taskDesc, (selection) => '# $selection', optionalOffset: 2))),
+                            onPressed: () => replaceTextSelectionWith(
+                                taskDesc, (selection) => '# $selection',
+                                optionalOffset: 2))),
                   ],
                 ),
               ],
@@ -489,8 +519,11 @@ class _NewTaskDialogState extends State<NewTaskDialog> {
                   header: 'Expected Days',
                   controller: expectedDaysController,
                   placeholder: 'i.e 2 or 3.5',
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))
+                  ],
                   suffix: const Text('Days'),
                 ),
               ),
@@ -499,7 +532,8 @@ class _NewTaskDialogState extends State<NewTaskDialog> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Align(alignment: Alignment.topLeft, child: Text('Priority')),
+                    const Align(
+                        alignment: Alignment.topLeft, child: Text('Priority')),
                     const Padding(padding: EdgeInsets.only(bottom: 2)),
                     ComboBox<int>(
                         isExpanded: true,
@@ -560,7 +594,8 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Created Time: ${widget.task.createdTime.toString().substring(0, 16)}'),
+                  Text(
+                      'Created Time: ${widget.task.createdTime.toString().substring(0, 16)}'),
                   if (widget.task.startedTime != null)
                     Text(
                         'Started Time: ${widget.task.startedTime.toString().substring(0, 16)} | Time Since Started: ${(DateTime.now().difference(widget.task.startedTime!).inMinutes / 1440).toStringAsFixed(2)} Days')
@@ -575,13 +610,17 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
             ),
             const Divider(),
             const ListTile(
-              title: Text('Description', style: TextStyle(fontWeight: FontWeight.bold)),
+              title: Text('Description',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               leading: Icon(FluentIcons.text_document),
             ),
-            Flexible(child: Markdown(data: widget.task.description ?? '', selectable: true)),
+            Flexible(
+                child: Markdown(
+                    data: widget.task.description ?? '', selectable: true)),
           ],
         ),
         appBar: NavigationAppBar(
-            title: Text("Task ${widget.task.name}", style: const TextStyle(fontWeight: FontWeight.bold))));
+            title: Text("Task ${widget.task.name}",
+                style: const TextStyle(fontWeight: FontWeight.bold))));
   }
 }

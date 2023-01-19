@@ -4,13 +4,22 @@ import 'package:fluent_ui/fluent_ui.dart';
 import 'package:pasteboard/pasteboard.dart';
 
 void showDeleteConfirmDialog(
-    {required BuildContext context, required VoidCallback onDelete, VoidCallback? onCanceled}) async {
+    {required BuildContext context,
+    required VoidCallback onDelete,
+    VoidCallback? onCanceled}) async {
   await showDialog(
       context: context,
       builder: (context) => ContentDialog(
             title: const Text('Do you really want to delete it?'),
-            content: const Text("This action can't be reverted. Just close it or store it is preferred."),
+            content: const Text(
+                "This action can't be reverted. Just close it or archive it is preferred."),
             actions: [
+              Button(
+                  onPressed: () {
+                    Navigator.pop(context, 'Delete');
+                    onDelete();
+                  },
+                  child: const Text('Delete')),
               FilledButton(
                   child: const Text('Cancel'),
                   onPressed: () {
@@ -18,31 +27,31 @@ void showDeleteConfirmDialog(
                     if (onCanceled != null) {
                       onCanceled();
                     }
-                  }),
-              Button(
-                  onPressed: () {
-                    Navigator.pop(context, 'Delete');
-                    onDelete();
-                  },
-                  child: const Text('Delete'))
+                  })
             ],
           ));
 }
 
-void replaceTextSelectionWith(TextEditingController textEditingController, Function(String selection) getReplaceString,
+void replaceTextSelectionWith(TextEditingController textEditingController,
+    Function(String selection) getReplaceString,
     {int? optionalOffset}) {
   final selection = textEditingController.selection;
   if (selection.isValid) {
     final text = textEditingController.text;
     final replaceText = getReplaceString(selection.textInside(text)) as String;
-    final newText = text.replaceRange(selection.start, selection.end, replaceText);
+    final newText =
+        text.replaceRange(selection.start, selection.end, replaceText);
     if (!selection.isCollapsed) {
       textEditingController.value = TextEditingValue(
-          text: newText, selection: TextSelection.collapsed(offset: selection.start + replaceText.length));
+          text: newText,
+          selection: TextSelection.collapsed(
+              offset: selection.start + replaceText.length));
     } else {
       textEditingController.value = TextEditingValue(
           text: newText,
-          selection: TextSelection.collapsed(offset: selection.start + (optionalOffset ?? replaceText.length)));
+          selection: TextSelection.collapsed(
+              offset:
+                  selection.start + (optionalOffset ?? replaceText.length)));
     }
   }
 }
@@ -66,5 +75,5 @@ DateTime get todayStart {
 }
 
 String get version {
-  return 'Ver: Test 0.1';
+  return 'Ver: Test 0.1.2';
 }
