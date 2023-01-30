@@ -6,7 +6,7 @@
   />
 </a>
   
-**JTasks** is a cross-platform task management software build with flutter and fluent-ui that can assist you manage tasks and progress of your job or project especially for solo devs.
+**JTasks** is a modern light-weight cross-platform task-boards management software made with flutter and fluent-ui. It can assist you manage tasks and progress of your job or project especially for solo devs.
 > **Warning** The project is still under development!!
 
 ## Features
@@ -23,9 +23,19 @@
   
 ![DarkMode](./images/T_DarkMode.PNG)
 
-## Getting Started To Contribute
+## Getting Started
+1. clone the project
+```git clone https://github.com/JenkinsGage/JTasks.git```
+2. cd into the project
+```cd JTasks```
+3. get all the dependencies
+```flutter pub get```
+4. build the database
+```flutter pub run build_runner build```
 
-This project is a starting point for a Flutter application.
+## Flutter
+
+This project is a Flutter application.
 
 A few resources to get you started if this is your first Flutter project:
 
